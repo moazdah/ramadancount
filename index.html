@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramadan 2026</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="sun" id="sun"></div>
+
+<header>
+<h1>Ramadan 2026</h1>
+<p class="timezone">Siden følger lokal tid i Stavanger, Norge</p>
+<div id="clock" class="clock"></div>
+</header>
+
+<main>
+
+<section class="status">
+<h2>Fremdrift</h2>
+<p id="dayCounter"></p>
+
+<div class="progress-wrapper">
+<svg width="200" height="200">
+<circle cx="100" cy="100" r="85" class="bg-circle"/>
+<circle cx="100" cy="100" r="85" class="progress-circle" id="progressCircle"/>
+</svg>
+<div class="progress-text" id="progressText"></div>
+</div>
+</section>
+
+<section id="importantSection"></section>
+
+</main>
+
+<script>
+const ramadanStart = new Date("2026-02-18T00:00:00+01:00");
+const totalDays = 29;
+const stavangerTimeZone = "Europe/Oslo";
+
+function getNow() {
+    return new Date(new Date().toLocaleString("en-US", { timeZone: stavangerTimeZone }));
+}
+
+function updateClock() {
+    const now = getNow();
+    document.getElementById("clock").innerText =
+        now.toLocaleString("no-NO") + " (Stavanger)";
+}
+
+function updateProgress() {
+    const now = getNow();
+    const diffTime = now - ramadanStart;
+    let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays < 0) diffDays = 0;
+    if (diffDays > totalDays) diffDays = totalDays;
+
+    const percent = (diffDays / totalDays) * 100;
+    const circumference = 2 * Math.PI * 85;
+    const offset = circumference - (percent / 100) * circumference;
+
+    const circle = document.getElementById("progressCircle");
+    circle.style.strokeDasharray = circumference;
+    circle.style.strokeDashoffset = offset;
+
+    document.getElementById("progressText").innerText =
+        percent.toFixed(1) + "%";
+
+    document.getElementById("dayCounter").innerText =
+        "Fastet: " + diffDays +
+        " dager | Gjenstår: " + (totalDays - diffDays) + " dager";
+
+    showImportantDays(diffDays);
+}
+
+function showImportantDays(day) {
+    const section = document.getElementById("importantSection");
+    section.innerHTML = "";
+
+    if (day >= 21 && day <= 29) {
+        section.innerHTML += createInfoBox(
+            "De siste 10 dagene",
+            "Dette er de mest verdifulle dagene i Ramadan. Øk innsats i bønn og refleksjon."
+        );
+    }
+
+    if (day === 27) {
+        section.innerHTML += createInfoBox(
+            "Laylat al Qadr",
+            "Natten som er bedre enn tusen måneder.",
+            "Laylat al Qadr er nevnt i Koranen og er en natt med enorm belønning og tilgivelse."
+        );
+    }
+}
+
+function createInfoBox(title, shortText, longText = null) {
+    return `
+    <div class="info-box">
+        <h3>${title}</h3>
+        <p>${shortText}</p>
+        ${longText ? `<button onclick="alert('${longText}')">Se mer</button>` : ""}
+    </div>`;
+}
+
+function updateSun() {
+    const now = getNow();
+    const hour = now.getHours() + now.getMinutes() / 60;
+
+    const sunrise = 6;
+    const sunset = 18;
+
+    let progress = 0;
+
+    if (hour <= sunrise) progress = 0;
+    else if (hour >= sunset) progress = 1;
+    else progress = (hour - sunrise) / (sunset - sunrise);
+
+    const sun = document.getElementById("sun");
+    sun.style.top = (10 + progress * 50) + "%";
+
+    const brightness = 0.85 + progress * 0.15;
+    document.body.style.background =
+        `linear-gradient(to bottom, rgba(255,255,255,${brightness}), #fff7d6)`;
+}
+
+setInterval(updateClock, 1000);
+setInterval(updateProgress, 60000);
+setInterval(updateSun, 60000);
+
+updateClock();
+updateProgress();
+updateSun();
+</script>
+
+</body>
+</html>
